@@ -12,6 +12,7 @@ class TelegramAPI():
     self.API_SEND = '/sendMessage'
     self.API_GET = '/getUpdates'
     self.POLL_DELAY = 2
+    self.MAX_THREADS = 23
     self.callback = None
 
   def start_poll_for_messages(self, callback):
@@ -42,7 +43,6 @@ class TelegramAPI():
     Run internally by start_poll_for_messages() via separate Thread
 
     Infinite loop to poll for new messages via API /getUpdates
-    Processes one message at a time
     """
     URL = self.API_PREFIX + self.API_KEY + self.API_GET
     while 1:
@@ -63,17 +63,24 @@ class TelegramAPI():
        
       # Parse incoming message
       j = json.loads(r.text) 
-      msg = j['result']
+      msgs = j['result']
       # Check if there are any new messages
-      if len(msg) == 0:
+      if len(msgs) == 0:
         continue
 
       # Pass user_input to callback function
       if self.callback is not None:
-        self.callback(msg[0])
+        thread_queue = []
+        # Use threading to run self.callback in parallel to avoid waiting
+        for msg in msgs:
+          t = threading.Thread(target=self.callback, args=(msg,))
+          t.start()
+          thread_queue.append(t)
+          if len(thread_queue) > self.MAX_THREADS:
+            thread_queue.pop(0).join()
 
       # Increment update_id so we read the next message later
-      self.latest_msg_id = msg[0]['update_id'] + 1
+      self.latest_msg_id = msg[-1]['update_id'] + 1
 
   def send_msg(self, chat_id, msg):
     """
@@ -93,4 +100,3 @@ class TelegramAPI():
       else:
         # Successfully sent msg to user
         return
-
