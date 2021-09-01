@@ -46,6 +46,8 @@ class TelegramAPI():
     """
     URL = self.API_PREFIX + self.API_KEY + self.API_GET
     while 1:
+      time.sleep(self.POLL_DELAY)
+      
       PARAMS = {'offset':self.latest_msg_id,'limit':1}
 
       # Poll for next new message
@@ -53,7 +55,6 @@ class TelegramAPI():
         r = requests.get(URL,params=PARAMS)
       except:
         print('{}'.format(traceback.print_exc()))
-        time.sleep(self.POLL_DELAY)
         continue
 
       # Check if response is valid
