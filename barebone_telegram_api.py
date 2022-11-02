@@ -11,7 +11,6 @@ class TelegramAPI():
     self.API_PREFIX = 'https://api.telegram.org/bot'
     self.API_SEND = '/sendMessage'
     self.API_GET = '/getUpdates'
-    self.POLL_DELAY = 2
     self.MAX_THREADS = 23
     self.callback = None
 
@@ -46,10 +45,7 @@ class TelegramAPI():
     """
     URL = self.API_PREFIX + self.API_KEY + self.API_GET
     while 1:
-      time.sleep(self.POLL_DELAY)
-      
-      PARAMS = {'offset':self.latest_msg_id,'limit':1}
-
+      PARAMS = {'offset':self.latest_msg_id,'limit':1,'timeout':60}
       # Poll for next new message
       try:
         r = requests.get(URL,params=PARAMS)
